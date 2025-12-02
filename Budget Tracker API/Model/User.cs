@@ -26,9 +26,9 @@ namespace Budget_Tracker_API.Model
 
         // Navigation Properties
         public ICollection<Budget>? Budgets { get; set; }
-        /*public ICollection<Expense>? Expenses { get; set; }
+        public ICollection<Expense>? Expenses { get; set; }
         public ICollection<Income>? IncomeRecords { get; set; }
-        public ICollection<Goal>? Goals { get; set; }*/
+        public ICollection<Goal>? Goals { get; set; }
 
     }
 }
