@@ -9,17 +9,14 @@ namespace Budget_Tracker_API.Model
         public int CategoryId { get; set; }
 
         [Required]
-        public int BudgetId { get; set; }    // Foreign Key
-
-        [Required]
-        [MaxLength(100)]
+        [MaxLength(60)]
         public string Name { get; set; } = string.Empty;
 
-        [Required]
-        public decimal LimitAmount { get; set; }
+        // NULL → preset category
+        public int? UserId { get; set; }
 
-        // Navigation Properties
-        public Budget? Budget { get; set; }
+        // Navigation
+        public User? User { get; set; }
         public ICollection<Expense>? Expenses { get; set; }
     }
 }

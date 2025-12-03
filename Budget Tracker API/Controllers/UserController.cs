@@ -1,7 +1,6 @@
-﻿using Budget_Tracker_API.Database;
+﻿using Budget_Tracker_API.Data;
 using Budget_Tracker_API.DTO;
 using Budget_Tracker_API.Model;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,55 +22,58 @@ namespace Budget_Tracker_API.Controllers
         public async Task<IActionResult> Signup([FromBody] UserRegisterDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(new { success = false, message = "Invalid data." });
 
-            // Check if email already exists
+            string normalizedEmail = dto.Email.Trim().ToLower();
+
+            // Check if email exists
             var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == dto.Email);
-            if (existingUser != null)
-                return BadRequest(new { message = "Email already registered." });
+                .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
 
-            // Hash password
+            if (existingUser != null)
+                return Conflict(new { success = false, message = "Email is already registered." });
+
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
             var user = new User
             {
-                Name = dto.Name,
-                Email = dto.Email,
+                Name = dto.Name.Trim(),
+                Email = normalizedEmail,
                 PasswordHash = passwordHash,
-                CreatedAt = DateTime.UtcNow
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "User registered successfully." });
+            return Ok(new { success = true, message = "User registered successfully." });
         }
 
+        // POST: api/User/login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(new { success = false, message = "Invalid data." });
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            string normalizedEmail = dto.Email.Trim().ToLower();
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
             if (user == null)
-                return BadRequest(new { message = "Invalid email or password." });
+                return Unauthorized(new { success = false, message = "Invalid email or password." });
 
             bool validPassword = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
             if (!validPassword)
-                return BadRequest(new { message = "Invalid email or password." });
+                return Unauthorized(new { success = false, message = "Invalid email or password." });
 
-            // Return basic user info (without password)
             return Ok(new
             {
+                success = true,
                 message = "Login successful.",
-                user = new
+                data = new
                 {
                     user.UserId,
                     user.Name,
-                    user.Email,
-                    user.CreatedAt
+                    user.Email
                 }
             });
         }

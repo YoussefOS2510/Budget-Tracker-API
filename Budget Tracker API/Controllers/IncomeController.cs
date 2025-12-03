@@ -1,4 +1,4 @@
-﻿using Budget_Tracker_API.Database;
+﻿using Budget_Tracker_API.Data;
 using Budget_Tracker_API.DTO;
 using Budget_Tracker_API.Model;
 using Microsoft.AspNetCore.Http;
@@ -18,14 +18,13 @@ namespace Budget_Tracker_API.Controllers
             _context = context;
         }
 
-        // POST: api/Income/add
-        [HttpPost("add")]
-        public async Task<IActionResult> AddIncome([FromBody] IncomeDto dto, int userId)
+        // POST: api/income/1/add
+        [HttpPost("{userId}/add")]
+        public async Task<IActionResult> AddIncome(int userId, [FromBody] IncomeDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Check user exists
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return BadRequest(new { message = "User not found." });
@@ -36,37 +35,24 @@ namespace Budget_Tracker_API.Controllers
                 Amount = dto.Amount,
                 SourceName = dto.SourceName,
                 IncomeDate = dto.IncomeDate,
-                IsRecurring = dto.IsRecurring
+                IsRecurring = dto.IsRecurring // defaults to false anyway
             };
 
-            _context.IncomeRecords.Add(income);
+            _context.Incomes.Add(income);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Income added successfully.", incomeId = income.IncomeId });
+            return Ok(new { message = "Income added successfully.", income });
         }
 
-        // GET: api/Income/user/1
-        [HttpGet("user/{userId}")]
+        // GET: api/income/1
+        [HttpGet("{userId}")]
         public async Task<IActionResult> GetUserIncomes(int userId)
         {
-            var incomes = await _context.IncomeRecords
-                .Where(i => i.UserId == userId)
-                .OrderByDescending(i => i.IncomeDate)
-                .ToListAsync();
-
-            return Ok(incomes);
-        }
-
-        // GET: api/Income/my
-        [HttpGet("my")]
-        public async Task<IActionResult> GetMyIncomes([FromQuery] int userId)
-        {
-            // Simulate "logged in user" by query parameter
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return BadRequest(new { message = "User not found." });
 
-            var incomes = await _context.IncomeRecords
+            var incomes = await _context.Incomes
                 .Where(i => i.UserId == userId)
                 .OrderByDescending(i => i.IncomeDate)
                 .ToListAsync();

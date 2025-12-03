@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace Budget_Tracker_API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,10 +19,9 @@ namespace Budget_Tracker_API.Migrations
                 {
                     UserId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -46,7 +47,7 @@ namespace Budget_Tracker_API.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -69,11 +70,11 @@ namespace Budget_Tracker_API.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "IncomeRecords",
+                name: "Incomes",
                 columns: table => new
                 {
                     IncomeId = table.Column<int>(type: "int", nullable: false)
@@ -86,13 +87,13 @@ namespace Budget_Tracker_API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_IncomeRecords", x => x.IncomeId);
+                    table.PrimaryKey("PK_Incomes", x => x.IncomeId);
                     table.ForeignKey(
-                        name: "FK_IncomeRecords_Users_UserId",
+                        name: "FK_Incomes_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -101,9 +102,9 @@ namespace Budget_Tracker_API.Migrations
                 {
                     CategoryId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    BudgetId = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    LimitAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: true),
+                    BudgetId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -112,8 +113,13 @@ namespace Budget_Tracker_API.Migrations
                         name: "FK_BudgetCategories_Budgets_BudgetId",
                         column: x => x.BudgetId,
                         principalTable: "Budgets",
-                        principalColumn: "BudgetId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "BudgetId");
+                    table.ForeignKey(
+                        name: "FK_BudgetCategories_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -124,9 +130,9 @@ namespace Budget_Tracker_API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
+                    ExpenseDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    ExpenseDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsRecurring = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -137,7 +143,7 @@ namespace Budget_Tracker_API.Migrations
                         column: x => x.CategoryId,
                         principalTable: "BudgetCategories",
                         principalColumn: "CategoryId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Expenses_Users_UserId",
                         column: x => x.UserId,
@@ -146,10 +152,29 @@ namespace Budget_Tracker_API.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.InsertData(
+                table: "BudgetCategories",
+                columns: new[] { "CategoryId", "BudgetId", "Name", "UserId" },
+                values: new object[,]
+                {
+                    { 1, null, "Food", null },
+                    { 2, null, "Fun", null },
+                    { 3, null, "Shopping", null },
+                    { 4, null, "Health", null },
+                    { 5, null, "Transportation", null },
+                    { 6, null, "Bills", null },
+                    { 7, null, "Other", null }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_BudgetCategories_BudgetId",
                 table: "BudgetCategories",
                 column: "BudgetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BudgetCategories_UserId",
+                table: "BudgetCategories",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Budgets_UserId",
@@ -172,8 +197,8 @@ namespace Budget_Tracker_API.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_IncomeRecords_UserId",
-                table: "IncomeRecords",
+                name: "IX_Incomes_UserId",
+                table: "Incomes",
                 column: "UserId");
         }
 
@@ -187,7 +212,7 @@ namespace Budget_Tracker_API.Migrations
                 name: "Goals");
 
             migrationBuilder.DropTable(
-                name: "IncomeRecords");
+                name: "Incomes");
 
             migrationBuilder.DropTable(
                 name: "BudgetCategories");

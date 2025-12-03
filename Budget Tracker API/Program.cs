@@ -1,4 +1,4 @@
-using Budget_Tracker_API.Database;
+using Budget_Tracker_API.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
