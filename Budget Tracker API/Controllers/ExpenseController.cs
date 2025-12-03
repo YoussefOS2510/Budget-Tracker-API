@@ -19,9 +19,9 @@ namespace Budget_Tracker_API.Controllers
             _context = context;
         }
 
-        // POST: api/Expense/add
-        [HttpPost("add")]
-        public async Task<IActionResult> AddExpense([FromBody] ExpenseDto dto, [FromQuery] int userId)
+        // POST: api/expense/1/add
+        [HttpPost("{userId}/add")]
+        public async Task<IActionResult> AddExpense(int userId, [FromBody] ExpenseDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -29,12 +29,12 @@ namespace Budget_Tracker_API.Controllers
             // Validate User
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
-                return BadRequest(new { message = "User not found." });
+                return BadRequest(new { success = false, message = "User not found." });
 
             // Validate Category
             var category = await _context.BudgetCategories.FindAsync(dto.CategoryId);
             if (category == null)
-                return BadRequest(new { message = "Category not found." });
+                return BadRequest(new { success = false, message = "Category not found." });
 
             var expense = new Expense
             {
@@ -43,22 +43,22 @@ namespace Budget_Tracker_API.Controllers
                 Description = dto.Description,
                 ExpenseDate = dto.ExpenseDate,
                 CategoryId = dto.CategoryId,
-                IsRecurring = dto.IsRecurring
+                IsRecurring = dto.IsRecurring // defaults to false if not sent
             };
 
             _context.Expenses.Add(expense);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Expense added successfully.", expenseId = expense.ExpenseId });
+            return Ok(new { success = true, message = "Expense added successfully.", expense });
         }
 
-        // GET: api/Expense/my
-        [HttpGet("my")]
-        public async Task<IActionResult> GetMyExpenses([FromQuery] int userId)
+        // GET: api/expense/1
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUserExpenses(int userId)
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
-                return BadRequest(new { message = "User not found." });
+                return BadRequest(new { success = false, message = "User not found." });
 
             var expenses = await _context.Expenses
                 .Include(e => e.Category)
@@ -66,7 +66,7 @@ namespace Budget_Tracker_API.Controllers
                 .OrderByDescending(e => e.ExpenseDate)
                 .ToListAsync();
 
-            return Ok(expenses);
+            return Ok(new { success = true, expenses });
         }
     }
 }

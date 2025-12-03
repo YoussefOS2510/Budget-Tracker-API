@@ -60,5 +60,41 @@ namespace Budget_Tracker_API.Controllers
             return Ok(incomes);
         }
 
+        // PUT: api/income/1/5/update
+        [HttpPut("{userId}/{incomeId}/update")]
+        public async Task<IActionResult> UpdateIncome(int userId, int incomeId, [FromBody] IncomeDto dto)
+        {
+            var income = await _context.Incomes
+                .FirstOrDefaultAsync(i => i.UserId == userId && i.IncomeId == incomeId);
+
+            if (income == null)
+                return NotFound(new { success = false, message = "Income not found." });
+
+            income.SourceName = dto.SourceName;
+            income.Amount = dto.Amount;
+            income.IncomeDate = dto.IncomeDate;
+            income.IsRecurring = dto.IsRecurring;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Income updated successfully.", income });
+        }
+
+        // DELETE: api/income/1/5
+        [HttpDelete("{userId}/{incomeId}")]
+        public async Task<IActionResult> DeleteIncome(int userId, int incomeId)
+        {
+            var income = await _context.Incomes
+                .FirstOrDefaultAsync(i => i.UserId == userId && i.IncomeId == incomeId);
+
+            if (income == null)
+                return NotFound(new { success = false, message = "Income not found." });
+
+            _context.Incomes.Remove(income);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Income deleted successfully." });
+        }
+
     }
 }
