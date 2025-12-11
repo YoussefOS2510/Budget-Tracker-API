@@ -16,6 +16,7 @@ namespace Budget_Tracker_API.Model
         public int? UserId { get; set; }
 
         // Navigation
+
         public User? User { get; set; }
         public ICollection<Expense>? Expenses { get; set; }
     }

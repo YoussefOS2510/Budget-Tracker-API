@@ -1,5 +1,6 @@
 using Budget_Tracker_API.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,12 @@ builder.Services.AddCors(options =>
              .AllowAnyHeader(); // Allows custom headers (like Authorization tokens)
         });
 });
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // This effectively breaks the loop by nulling out the repeating reference
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 
 builder.Services.AddControllers();
 
