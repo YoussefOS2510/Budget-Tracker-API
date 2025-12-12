@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Budget_Tracker_API.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class AddBudgetAmount : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

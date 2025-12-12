@@ -68,5 +68,38 @@ namespace Budget_Tracker_API.Controllers
 
             return Ok(new { success = true, expenses });
         }
+
+        [HttpPut("{userId}/edit/{expenseId}")]
+        public async Task<IActionResult> EditExpense(int userId, int expenseId, [FromBody] ExpenseDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Validate User
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return BadRequest(new { success = false, message = "User not found." });
+
+            // Validate Expense
+            var expense = await _context.Expenses.FirstOrDefaultAsync(e => e.ExpenseId == expenseId && e.UserId == userId);
+            if (expense == null)
+                return NotFound(new { success = false, message = "Expense not found." });
+
+            // Validate Category
+            var category = await _context.BudgetCategories.FindAsync(dto.CategoryId);
+            if (category == null)
+                return BadRequest(new { success = false, message = "Category not found." });
+
+            // Update Fields
+            expense.Amount = dto.Amount;
+            expense.Description = dto.Description;
+            expense.ExpenseDate = dto.ExpenseDate;
+            expense.CategoryId = dto.CategoryId;
+            expense.IsRecurring = dto.IsRecurring;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Expense updated successfully.", expense });
+        }
     }
 }
